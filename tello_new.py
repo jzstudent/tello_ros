@@ -3,7 +3,7 @@ import threading
 import time
 import numpy as np
 import libh264decoder
-
+from stats import Stats
 class Tello:
     """Wrapper class to interact with the Tello drone."""
 
@@ -29,11 +29,15 @@ class Tello:
         self.frame = None  # numpy array BGR -- current camera output frame
         self.is_freeze = False  # freeze current camera output
         self.last_frame = None
+	
+	self.log = []
+        self.MAX_TIME_OUT = 10.0
+
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # socket for sending cmd
         self.socket_video = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # socket for receiving video stream
 
         self.socket_state=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)#state socket
-
+	self.tello_ip=tello_ip
         self.tello_address = (tello_ip, tello_port)
         self.local_video_port = 11111  # port for receiving video stream
         self.last_height = 0
@@ -99,6 +103,8 @@ class Tello:
         while True:
             try:
                 self.response, ip = self.socket.recvfrom(3000)
+		if len(self.log)!=0:
+			self.log[-1].add_response(self.response)
                 #print(self.response)
             except socket.error as exc:
                 print ("Caught exception socket.error : %s" % exc)
@@ -164,27 +170,37 @@ class Tello:
         :return (str): Response from Tello.
 
         """
-
+	self.log.append(Stats(command, len(self.log)))
         print (">> send cmd: {}".format(command))
-        self.abort_flag = False
-        timer = threading.Timer(self.command_timeout, self.set_abort_flag)
+        #self.abort_flag = False
+        #timer = threading.Timer(self.command_timeout, self.set_abort_flag)
 
         self.socket.sendto(command.encode('utf-8'), self.tello_address)
-
-        timer.start()
-        while self.response is None:
-            if self.abort_flag is True:
-                break
-        timer.cancel()
+	start = time.time()
+        while not self.log[-1].got_response():
+            now = time.time()
+            diff = now - start
+            if diff > self.MAX_TIME_OUT:
+                print 'Max timeout exceeded... command %s' % command
+                # TODO: is timeout considered failure or next command still get executed
+                # now, next one got executed
+                
+        print 'Done!!! sent command: %s to %s' % (command, self.tello_ip)
+	#return self.log[-1].got_response()
+        #timer.start()
+        #while self.response is None:
+         #   if self.abort_flag is True:
+          #      break
+        #timer.cancel()
         
-        if self.response is None:
-            response = 'none_response'
-        else:
-            response = self.response.decode('utf-8')
+        #if self.response is None:
+         #   response = 'none_response'
+        #else:
+         #   response = self.response.decode('utf-8')
 
-        self.response = None
+        #self.response = None
 
-        return response
+        #return response
     
     def set_abort_flag(self):
         """

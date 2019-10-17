@@ -72,5 +72,10 @@ A c++ based class that decodes raw h264 data. This module interacts with python 
 
 After compilation, a libh264decoder.so or libh264decoder.pyd file will be placed in the working directory so that the main python file can reference it. 
 
+If you have to compile it from source,with Linux or Mac,you can:
+
+```
+
+```
 
 

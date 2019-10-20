@@ -28,7 +28,7 @@ def control():
 	###########################
 	
 	drone.send_command("takeoff")
-	print send_command("battery?")
+	print drone.send_command("battery?")
 	drone.send_command("go 0 50 0 10")
 	drone.send_command("land")
 

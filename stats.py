@@ -32,7 +32,7 @@ class Stats:
         if self.response is None:
             return False
         else:
-            return True
+            return self.response
 
     def return_stats(self):
         str = ''

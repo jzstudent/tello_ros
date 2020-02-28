@@ -75,6 +75,12 @@ After compilation, a libh264decoder.so or libh264decoder.pyd file will be placed
 If you have to compile it from source,with Linux or Mac,you can:
 
 ```
+cd h264decoder
+mkdir build
+cd build
+cmake ..
+make
+cp libh264decoder.so ../../
 
 ```
 
